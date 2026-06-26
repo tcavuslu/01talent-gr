@@ -611,82 +611,6 @@ function initSticky(root = document) {
   });
 }
 
-  let cursor, cursorRAF, mx = 0, my = 0, rx = 0, ry = 0, activeFrame = null, activeButton = null;
-
-  function initCursor(root = document) {
-    if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-
-    const frames = $$(".image-wrapper.is-testimonial", root);
-    if (!frames.length) return;
-
-    if (!cursor) {
-      cursor = document.createElement("div");
-      cursor.className = "testimonial-cursor-play";
-      cursor.innerHTML = '<div class="play-button"><div class="play-icon"></div></div>';
-      cursor.style.cssText = "position:fixed;top:0;left:0;width:5rem;height:5rem;pointer-events:none;opacity:0;z-index:9999;transition:opacity .22s ease;";
-      document.body.appendChild(cursor);
-
-      document.addEventListener("mousemove", e => {
-        mx = e.clientX;
-        my = e.clientY;
-      });
-    }
-
-    frames.forEach(frame => {
-      if (frame.dataset.cursorBound) return;
-      frame.dataset.cursorBound = "1";
-
-      const btn = $(".play-button", frame);
-      if (!btn) return;
-
-      frame.addEventListener("mouseenter", e => {
-        activeFrame = frame;
-        activeButton = btn;
-        mx = rx = e.clientX;
-        my = ry = e.clientY;
-        cursor.style.opacity = "1";
-      });
-
-      frame.addEventListener("mousemove", e => {
-        mx = e.clientX;
-        my = e.clientY;
-      });
-
-      frame.addEventListener("mouseleave", () => {
-        activeFrame = activeButton = null;
-        cursor.style.opacity = "0";
-      });
-    });
-
-    if (!cursorRAF) {
-      cursorRAF = true;
-      (function tick() {
-        let tx = mx, ty = my;
-
-        if (activeFrame && activeButton) {
-          const r = activeButton.getBoundingClientRect();
-          tx = mx + (r.left + r.width / 2 - mx) * 0.82;
-          ty = my + (r.top + r.height / 2 - my) * 0.82;
-        }
-
-        const e = activeFrame ? 0.22 : 0.14;
-        rx += (tx - rx) * e;
-        ry += (ty - ry) * e;
-
-        if (cursor) cursor.style.transform = `translate3d(${rx}px,${ry}px,0) translate(-50%,-50%)`;
-        requestAnimationFrame(tick);
-      })();
-    }
-  }
-
-  function cleanupCursor() {
-    activeFrame = activeButton = null;
-    if (cursor) cursor.style.opacity = "0";
-    $$(".testimonial-cursor-play").forEach(el => {
-      if (el !== cursor) el.remove();
-    });
-  }
-
 function initVimeo(root = document) {
   if (!window.Vimeo) return;
 
@@ -1290,13 +1214,11 @@ function currentLinks() {
     initLogoWall(root);
     initSwiper(root);
     initVimeo(root);
-    initCursor(root);
     secPix.init(root);
     if (ST) ScrollTrigger.refresh();
   }
 
   function cleanup(root = document) {
-    cleanupCursor();
     cleanupVimeo(root);
     cleanupLogoWall(root);
     $$(".testimonial-slider", root).forEach(s => s.swiper?.destroy(true, true));
